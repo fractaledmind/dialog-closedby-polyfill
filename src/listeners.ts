@@ -79,17 +79,15 @@ function documentEscapeHandler(event: KeyboardEvent): void {
 
     if (closedBy === "any" || closedBy === "closerequest") {
       // For non-modal dialogs, dispatch cancel event before closing
-      if (!dialog.matches(':modal')) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true,
-        });
-        
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          // cancel was prevented, treat as if closedBy="none"
-          shouldPreventDefault = true;
-          break;
-        }
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true,
+      });
+
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        // cancel was prevented, treat as if closedBy="none"
+        shouldPreventDefault = true;
+        break;
       }
 
       // Close only the topmost closable dialog and stop processing
@@ -140,17 +138,16 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
 
     if (!inside) {
       // For non-modal dialogs, dispatch cancel event before closing
-      if (!dialog.matches(':modal')) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true,
-        });
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true,
+      });
 
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          // cancel was prevented, don't close
-          return;
-        }
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        // cancel was prevented, don't close
+        return;
       }
+
       dialog.close();
     }
   };
@@ -180,17 +177,16 @@ function createClickHandler(dialog: HTMLDialogElement) {
 
     if (!inside) {
       // For non-modal dialogs, dispatch cancel event before closing
-      if (!dialog.matches(':modal')) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true,
-        });
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true,
+      });
 
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          // cancel was prevented, don't close
-          return;
-        }
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        // cancel was prevented, don't close
+        return;
       }
+
       dialog.close();
     }
   };

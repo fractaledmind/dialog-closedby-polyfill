@@ -21,15 +21,13 @@ function documentEscapeHandler(event) {
       break;
     }
     if (closedBy === "any" || closedBy === "closerequest") {
-      if (!dialog.matches(":modal")) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true
-        });
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          shouldPreventDefault = true;
-          break;
-        }
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true
+      });
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        shouldPreventDefault = true;
+        break;
       }
       dialog.close();
       hasClosableDialog = true;
@@ -50,14 +48,12 @@ function createLightDismissHandler(dialog) {
     const { clientX: x, clientY: y } = event;
     const inside = rect.top <= y && y <= rect.bottom && rect.left <= x && x <= rect.right;
     if (!inside) {
-      if (!dialog.matches(":modal")) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true
-        });
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          return;
-        }
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true
+      });
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        return;
       }
       dialog.close();
     }
@@ -70,14 +66,12 @@ function createClickHandler(dialog) {
     const rect = dialog.getBoundingClientRect();
     const inside = rect.top < event.clientY && event.clientY < rect.bottom && rect.left < event.clientX && event.clientX < rect.right;
     if (!inside) {
-      if (!dialog.matches(":modal")) {
-        const cancelEvent = new Event("cancel", {
-          bubbles: false,
-          cancelable: true
-        });
-        if (!dialog.dispatchEvent(cancelEvent)) {
-          return;
-        }
+      const cancelEvent = new Event("cancel", {
+        bubbles: false,
+        cancelable: true
+      });
+      if (!dialog.dispatchEvent(cancelEvent)) {
+        return;
       }
       dialog.close();
     }
