@@ -78,6 +78,20 @@ function documentEscapeHandler(event: KeyboardEvent): void {
     }
 
     if (closedBy === "any" || closedBy === "closerequest") {
+      // For non-modal dialogs, dispatch cancel event before closing
+      if (!dialog.matches(':modal')) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true,
+        });
+        
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          // cancel was prevented, treat as if closedBy="none"
+          shouldPreventDefault = true;
+          break;
+        }
+      }
+
       // Close only the topmost closable dialog and stop processing
       dialog.close();
       hasClosableDialog = true;
@@ -124,7 +138,21 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
     const inside =
       rect.top <= y && y <= rect.bottom && rect.left <= x && x <= rect.right;
 
-    if (!inside) dialog.close();
+    if (!inside) {
+      // For non-modal dialogs, dispatch cancel event before closing
+      if (!dialog.matches(':modal')) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true,
+        });
+
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          // cancel was prevented, don't close
+          return;
+        }
+      }
+      dialog.close();
+    }
   };
 }
 
@@ -150,7 +178,21 @@ function createClickHandler(dialog: HTMLDialogElement) {
       rect.left < event.clientX &&
       event.clientX < rect.right;
 
-    if (!inside) dialog.close();
+    if (!inside) {
+      // For non-modal dialogs, dispatch cancel event before closing
+      if (!dialog.matches(':modal')) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true,
+        });
+
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          // cancel was prevented, don't close
+          return;
+        }
+      }
+      dialog.close();
+    }
   };
 }
 

@@ -21,6 +21,16 @@ function documentEscapeHandler(event) {
       break;
     }
     if (closedBy === "any" || closedBy === "closerequest") {
+      if (!dialog.matches(":modal")) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true
+        });
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          shouldPreventDefault = true;
+          break;
+        }
+      }
       dialog.close();
       hasClosableDialog = true;
       break;
@@ -39,7 +49,18 @@ function createLightDismissHandler(dialog) {
     const rect = dialog.getBoundingClientRect();
     const { clientX: x, clientY: y } = event;
     const inside = rect.top <= y && y <= rect.bottom && rect.left <= x && x <= rect.right;
-    if (!inside) dialog.close();
+    if (!inside) {
+      if (!dialog.matches(":modal")) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true
+        });
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          return;
+        }
+      }
+      dialog.close();
+    }
   };
 }
 function createClickHandler(dialog) {
@@ -48,7 +69,18 @@ function createClickHandler(dialog) {
     if (getClosedByValue(dialog) !== "any") return;
     const rect = dialog.getBoundingClientRect();
     const inside = rect.top < event.clientY && event.clientY < rect.bottom && rect.left < event.clientX && event.clientX < rect.right;
-    if (!inside) dialog.close();
+    if (!inside) {
+      if (!dialog.matches(":modal")) {
+        const cancelEvent = new Event("cancel", {
+          bubbles: false,
+          cancelable: true
+        });
+        if (!dialog.dispatchEvent(cancelEvent)) {
+          return;
+        }
+      }
+      dialog.close();
+    }
   };
 }
 function createCancelHandler(dialog) {
@@ -149,13 +181,20 @@ function apply() {
     );
     return;
   }
+  const originalShow = HTMLDialogElement.prototype.show;
   const originalShowModal = HTMLDialogElement.prototype.showModal;
   const originalClose = HTMLDialogElement.prototype.close;
-  HTMLDialogElement.prototype.showModal = function showModalPatched() {
-    originalShowModal.call(this);
-    if (!this.open) return;
-    if (this.hasAttribute("closedby")) attachDialog(this);
-  };
+  function wrapDialogMethod(originalMethod) {
+    return function() {
+      originalMethod.call(this);
+      if (!this.open) return;
+      if (this.hasAttribute("closedby")) {
+        attachDialog(this);
+      }
+    };
+  }
+  HTMLDialogElement.prototype.show = wrapDialogMethod(originalShow);
+  HTMLDialogElement.prototype.showModal = wrapDialogMethod(originalShowModal);
   HTMLDialogElement.prototype.close = function closePatched(returnValue) {
     detachDialog(this);
     originalClose.call(this, returnValue);
