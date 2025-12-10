@@ -32,6 +32,9 @@ export interface DialogListeners {
   /** `cancel` event handler installed on the dialog element. */
   handleCancel: (event: Event) => void;
 
+  /** `close` event handler that triggers cleanup when the dialog closes. */
+  handleClose: () => void;
+
   /**
    * Attribute observer that tracks runtime changes to `closedby`. Each dialog
    * owns its individual observer instance so that `disconnect()` can be called

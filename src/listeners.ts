@@ -237,7 +237,14 @@ function createCancelHandler(dialog: HTMLDialogElement) {
  * when re-opened after being closed by a button click inside it.
  */
 export function attachDialog(dialog: HTMLDialogElement): void {
-  if (dialogStates.has(dialog)) return; // already initialized
+  if (dialogStates.has(dialog)) {
+    // Dialog already tracked - update openedAt for the new open.
+    // This handles cases where the dialog was closed via <form method="dialog">
+    // which fires the close event but may be reopened in the same tick.
+    const state = dialogStates.get(dialog)!;
+    state.openedAt = performance.now();
+    return;
+  }
 
   const state: DialogListeners = {
     handleEscape: documentEscapeHandler,
@@ -247,11 +254,13 @@ export function attachDialog(dialog: HTMLDialogElement): void {
     attrObserver: new MutationObserver(() => {
       /* intentionally empty: reactivity handled via getClosedByValue() */
     }),
+    handleClose: () => detachDialog(dialog),
     openedAt: performance.now(),
   };
 
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
+  dialog.addEventListener("close", state.handleClose);
 
   // Capture phase to avoid stopPropagation() in frameworks
   document.addEventListener("click", state.handleDocClick, true);
@@ -276,6 +285,7 @@ export function detachDialog(dialog: HTMLDialogElement): void {
 
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
+  dialog.removeEventListener("close", state.handleClose);
   document.removeEventListener("click", state.handleDocClick, true);
   state.attrObserver.disconnect();
 

@@ -93,7 +93,11 @@ function createCancelHandler(dialog) {
   };
 }
 function attachDialog(dialog) {
-  if (dialogStates.has(dialog)) return;
+  if (dialogStates.has(dialog)) {
+    const state2 = dialogStates.get(dialog);
+    state2.openedAt = performance.now();
+    return;
+  }
   const state = {
     handleEscape: documentEscapeHandler,
     handleClick: createClickHandler(dialog),
@@ -101,10 +105,12 @@ function attachDialog(dialog) {
     handleCancel: createCancelHandler(dialog),
     attrObserver: new MutationObserver(() => {
     }),
+    handleClose: () => detachDialog(dialog),
     openedAt: performance.now()
   };
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
+  dialog.addEventListener("close", state.handleClose);
   document.addEventListener("click", state.handleDocClick, true);
   state.attrObserver.observe(dialog, {
     attributes: true,
@@ -118,6 +124,7 @@ function detachDialog(dialog) {
   if (!state) return;
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
+  dialog.removeEventListener("close", state.handleClose);
   document.removeEventListener("click", state.handleDocClick, true);
   state.attrObserver.disconnect();
   activeDialogs.delete(dialog);
