@@ -1,12 +1,12 @@
 # dialog-closedby-polyfill
 
-A polyfill for the HTMLDialogElement `closedby` attribute, providing control over how modal dialogs can be dismissed.
+A polyfill for the HTMLDialogElement `closedby` attribute, providing control over how dialogs can be dismissed.
 
 > **Note**: The HTML attribute is `closedby` (lowercase), while the JavaScript property is `closedBy` (camelCase).
 
 ## Features
 
-- 🎯 Implements the `closedby` attribute for `<dialog>` elements
+- 🎯 Implements the `closedby` attribute for both modal and non-modal `<dialog>` elements
 - 🔒 Three closing modes: `any`, `closerequest`, and `none`
 - 🚀 Zero dependencies
 - 📦 TypeScript support included
@@ -68,7 +68,7 @@ https://tak-dcxi.github.io/github-pages-demo/closedby.html
 
 ## How it works
 
-The `closedby` attribute controls how a modal dialog can be dismissed:
+The `closedby` attribute controls how a dialog (modal or non-modal) can be dismissed:
 
 ### Closing Behavior Matrix
 
@@ -244,11 +244,11 @@ interface HTMLDialogElement {
 The polyfill works by:
 
 1. **Extending HTMLDialogElement**: Adds the `closedby` property to dialog elements
-1. **Intercepting `showModal()`**: Sets up event listeners when a modal dialog is opened
+1. **Intercepting `showModal()` and `show()`**: Sets up event listeners when a dialog is opened (modal or non-modal)
 1. **Handling Events**:
    - `keydown` event for ESC key detection
    - `click` event on the dialog for backdrop clicks
-   - `cancel` event prevention based on `closedby` value
+   - `cancel` event dispatch and prevention based on `closedby` value
 1. **Observing Changes**: Uses MutationObserver to watch for attribute changes
 1. **Cleanup**: Removes event listeners when dialog is closed
 
