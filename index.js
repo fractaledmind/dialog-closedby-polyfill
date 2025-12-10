@@ -41,6 +41,10 @@ function documentEscapeHandler(event) {
 document.addEventListener("keydown", documentEscapeHandler);
 function createLightDismissHandler(dialog) {
   return function handleDocumentClick(event) {
+    const state = dialogStates.get(dialog);
+    if (state && event.timeStamp <= state.openedAt) {
+      return;
+    }
     if (!isTopMost(dialog) || getClosedByValue(dialog) !== "any" || !dialog.open) {
       return;
     }
@@ -61,6 +65,10 @@ function createLightDismissHandler(dialog) {
 }
 function createClickHandler(dialog) {
   return function handleClick(event) {
+    const state = dialogStates.get(dialog);
+    if (state && event.timeStamp <= state.openedAt) {
+      return;
+    }
     if (event.target !== dialog) return;
     if (getClosedByValue(dialog) !== "any") return;
     const rect = dialog.getBoundingClientRect();
@@ -91,14 +99,11 @@ function attachDialog(dialog) {
     handleCancel: createCancelHandler(dialog),
     attrObserver: new MutationObserver(() => {
     }),
-    docClickRafId: null
+    openedAt: performance.now()
   };
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
-  state.docClickRafId = requestAnimationFrame(() => {
-    document.addEventListener("click", state.handleDocClick, true);
-    state.docClickRafId = null;
-  });
+  document.addEventListener("click", state.handleDocClick, true);
   state.attrObserver.observe(dialog, {
     attributes: true,
     attributeFilter: ["closedby"]
@@ -109,9 +114,6 @@ function attachDialog(dialog) {
 function detachDialog(dialog) {
   const state = dialogStates.get(dialog);
   if (!state) return;
-  if (state.docClickRafId !== null) {
-    cancelAnimationFrame(state.docClickRafId);
-  }
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
   document.removeEventListener("click", state.handleDocClick, true);

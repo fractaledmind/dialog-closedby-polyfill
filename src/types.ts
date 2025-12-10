@@ -40,9 +40,9 @@ export interface DialogListeners {
   attrObserver: MutationObserver;
 
   /**
-   * ID of the pending requestAnimationFrame for deferred document click handler
-   * attachment. Stored so it can be cancelled if the dialog closes before the
-   * handler is attached.
+   * Timestamp (from performance.now()) when the dialog was opened. Used to
+   * ignore click events that occurred before the dialog opened, preventing
+   * immediate dismissal when reopening a dialog.
    */
-  docClickRafId: number | null;
+  openedAt: number;
 }
