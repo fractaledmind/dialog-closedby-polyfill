@@ -38,4 +38,11 @@ export interface DialogListeners {
    * deterministically on `close()`.
    */
   attrObserver: MutationObserver;
+
+  /**
+   * ID of the pending requestAnimationFrame for deferred document click handler
+   * attachment. Stored so it can be cancelled if the dialog closes before the
+   * handler is attached.
+   */
+  docClickRafId: number | null;
 }

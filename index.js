@@ -64,11 +64,15 @@ function attachDialog(dialog) {
     handleDocClick: createLightDismissHandler(dialog),
     handleCancel: createCancelHandler(dialog),
     attrObserver: new MutationObserver(() => {
-    })
+    }),
+    docClickRafId: null
   };
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
-  document.addEventListener("click", state.handleDocClick, true);
+  state.docClickRafId = requestAnimationFrame(() => {
+    document.addEventListener("click", state.handleDocClick, true);
+    state.docClickRafId = null;
+  });
   state.attrObserver.observe(dialog, {
     attributes: true,
     attributeFilter: ["closedby"]
@@ -79,6 +83,9 @@ function attachDialog(dialog) {
 function detachDialog(dialog) {
   const state = dialogStates.get(dialog);
   if (!state) return;
+  if (state.docClickRafId !== null) {
+    cancelAnimationFrame(state.docClickRafId);
+  }
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
   document.removeEventListener("click", state.handleDocClick, true);

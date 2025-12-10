@@ -176,6 +176,12 @@ function createCancelHandler(dialog: HTMLDialogElement) {
  *
  * @remarks
  * The function is idempotent; subsequent calls on the same element are no-ops.
+ *
+ * The document-level click handler for light-dismiss is deferred to the next
+ * animation frame to avoid catching the click event that triggered the dialog
+ * to open. Without this deferral, clicking a button inside a dialog that closes
+ * it (e.g., a confirm button) and then re-opening the dialog would cause it to
+ * immediately close because the original click event is still propagating.
  */
 export function attachDialog(dialog: HTMLDialogElement): void {
   if (dialogStates.has(dialog)) return; // already initialized
@@ -188,13 +194,20 @@ export function attachDialog(dialog: HTMLDialogElement): void {
     attrObserver: new MutationObserver(() => {
       /* intentionally empty: reactivity handled via getClosedByValue() */
     }),
+    docClickRafId: null,
   };
 
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
 
-  // Capture phase to avoid stopPropagation() in frameworks
-  document.addEventListener("click", state.handleDocClick, true);
+  // Defer document click handler to next frame to avoid catching the click
+  // event that opened the dialog. This prevents the dialog from immediately
+  // closing when re-opened after being closed by a button click inside it.
+  state.docClickRafId = requestAnimationFrame(() => {
+    // Capture phase to avoid stopPropagation() in frameworks
+    document.addEventListener("click", state.handleDocClick, true);
+    state.docClickRafId = null;
+  });
 
   state.attrObserver.observe(dialog, {
     attributes: true,
@@ -213,6 +226,11 @@ export function attachDialog(dialog: HTMLDialogElement): void {
 export function detachDialog(dialog: HTMLDialogElement): void {
   const state = dialogStates.get(dialog);
   if (!state) return;
+
+  // Cancel pending RAF if dialog closes before handler was attached
+  if (state.docClickRafId !== null) {
+    cancelAnimationFrame(state.docClickRafId);
+  }
 
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
