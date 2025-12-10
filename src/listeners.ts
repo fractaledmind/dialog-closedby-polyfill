@@ -110,6 +110,16 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
    * @param event - Pointer event.
    */
   return function handleDocumentClick(event: MouseEvent): void {
+    const state = dialogStates.get(dialog);
+
+    // Ignore clicks from before the dialog was opened or clicks that
+    // originated from inside the dialog (even if coordinates are outside)
+    if (state) {
+      if (event.timeStamp <= state.openedAt) return;
+      const target = event.target as Node;
+      if (dialog.contains(target)) return;
+    }
+
     // Only the top-most, open dialog with closedby="any" can be dismissed.
     if (
       !isTopMost(dialog) ||
@@ -140,6 +150,11 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
  */
 function createClickHandler(dialog: HTMLDialogElement) {
   return function handleClick(event: MouseEvent): void {
+    const state = dialogStates.get(dialog);
+
+    // Ignore clicks from before the dialog was opened
+    if (state && event.timeStamp <= state.openedAt) return;
+
     if (event.target !== dialog) return;
     if (getClosedByValue(dialog) !== "any") return;
 
@@ -175,23 +190,42 @@ function createCancelHandler(dialog: HTMLDialogElement) {
  * @param dialog - Target dialog element.
  *
  * @remarks
- * The function is idempotent; subsequent calls on the same element are no-ops.
+ * The function is idempotent; subsequent calls on the same element update
+ * the openedAt timestamp but do not re-attach listeners.
+ *
+ * Click handlers use event.timeStamp to ignore clicks that occurred before
+ * the dialog was opened. This prevents the dialog from immediately closing
+ * when re-opened after being closed by a button click inside it.
+ *
+ * A close event listener ensures cleanup happens regardless of how the dialog
+ * was closed (including via <form method="dialog"> which bypasses the patched
+ * close() method).
  */
 export function attachDialog(dialog: HTMLDialogElement): void {
-  if (dialogStates.has(dialog)) return; // already initialized
+  if (dialogStates.has(dialog)) {
+    // Dialog already tracked - update openedAt for the new open.
+    // This handles cases where the dialog was closed via <form method="dialog">
+    // which fires the close event but may be reopened in the same tick.
+    const state = dialogStates.get(dialog)!;
+    state.openedAt = performance.now();
+    return;
+  }
 
   const state: DialogListeners = {
     handleEscape: documentEscapeHandler,
     handleClick: createClickHandler(dialog),
     handleDocClick: createLightDismissHandler(dialog),
     handleCancel: createCancelHandler(dialog),
+    handleClose: () => detachDialog(dialog),
     attrObserver: new MutationObserver(() => {
       /* intentionally empty: reactivity handled via getClosedByValue() */
     }),
+    openedAt: performance.now(),
   };
 
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
+  dialog.addEventListener("close", state.handleClose);
 
   // Capture phase to avoid stopPropagation() in frameworks
   document.addEventListener("click", state.handleDocClick, true);
@@ -216,6 +250,7 @@ export function detachDialog(dialog: HTMLDialogElement): void {
 
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
+  dialog.removeEventListener("close", state.handleClose);
   document.removeEventListener("click", state.handleDocClick, true);
   state.attrObserver.disconnect();
 

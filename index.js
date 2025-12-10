@@ -33,6 +33,12 @@ function documentEscapeHandler(event) {
 document.addEventListener("keydown", documentEscapeHandler);
 function createLightDismissHandler(dialog) {
   return function handleDocumentClick(event) {
+    const state = dialogStates.get(dialog);
+    if (state) {
+      if (event.timeStamp <= state.openedAt) return;
+      const target = event.target;
+      if (dialog.contains(target)) return;
+    }
     if (!isTopMost(dialog) || getClosedByValue(dialog) !== "any" || !dialog.open) {
       return;
     }
@@ -44,6 +50,8 @@ function createLightDismissHandler(dialog) {
 }
 function createClickHandler(dialog) {
   return function handleClick(event) {
+    const state = dialogStates.get(dialog);
+    if (state && event.timeStamp <= state.openedAt) return;
     if (event.target !== dialog) return;
     if (getClosedByValue(dialog) !== "any") return;
     const rect = dialog.getBoundingClientRect();
@@ -57,17 +65,24 @@ function createCancelHandler(dialog) {
   };
 }
 function attachDialog(dialog) {
-  if (dialogStates.has(dialog)) return;
+  if (dialogStates.has(dialog)) {
+    const state2 = dialogStates.get(dialog);
+    state2.openedAt = performance.now();
+    return;
+  }
   const state = {
     handleEscape: documentEscapeHandler,
     handleClick: createClickHandler(dialog),
     handleDocClick: createLightDismissHandler(dialog),
     handleCancel: createCancelHandler(dialog),
+    handleClose: () => detachDialog(dialog),
     attrObserver: new MutationObserver(() => {
-    })
+    }),
+    openedAt: performance.now()
   };
   dialog.addEventListener("click", state.handleClick);
   dialog.addEventListener("cancel", state.handleCancel);
+  dialog.addEventListener("close", state.handleClose);
   document.addEventListener("click", state.handleDocClick, true);
   state.attrObserver.observe(dialog, {
     attributes: true,
@@ -81,6 +96,7 @@ function detachDialog(dialog) {
   if (!state) return;
   dialog.removeEventListener("click", state.handleClick);
   dialog.removeEventListener("cancel", state.handleCancel);
+  dialog.removeEventListener("close", state.handleClose);
   document.removeEventListener("click", state.handleDocClick, true);
   state.attrObserver.disconnect();
   activeDialogs.delete(dialog);
@@ -150,15 +166,10 @@ function apply() {
     return;
   }
   const originalShowModal = HTMLDialogElement.prototype.showModal;
-  const originalClose = HTMLDialogElement.prototype.close;
   HTMLDialogElement.prototype.showModal = function showModalPatched() {
     originalShowModal.call(this);
     if (!this.open) return;
     if (this.hasAttribute("closedby")) attachDialog(this);
-  };
-  HTMLDialogElement.prototype.close = function closePatched(returnValue) {
-    detachDialog(this);
-    originalClose.call(this, returnValue);
   };
   Object.defineProperty(HTMLDialogElement.prototype, "closedBy", {
     get() {
@@ -177,8 +188,6 @@ function apply() {
       if (this.open) {
         if (this.hasAttribute("closedby")) {
           attachDialog(this);
-        } else {
-          detachDialog(this);
         }
       }
     },
