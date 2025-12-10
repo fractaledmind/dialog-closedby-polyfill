@@ -1,6 +1,6 @@
 {
   "name": "@fractaledmind/dialog-closedby-polyfill",
-  "version": "1.2.2",
+  "version": "1.2.3",
   "description": "Polyfill for the HTMLDialogElement closedBy attribute (fork with light-dismiss race condition fix)",
   "main": "index.js",
   "types": "index.d.ts",
