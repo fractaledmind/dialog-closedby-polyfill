@@ -1,5 +1,5 @@
 import { setupObservers } from "./observer.js";
-import { attachDialog, detachDialog } from "./listeners.js";
+import { attachDialog } from "./listeners.js";
 import { ClosedBy } from "./types.js";
 
 /* -------------------------------------------------------------------------- */
@@ -53,7 +53,6 @@ export function apply(): void {
   /* Cache original methods */
   const originalShow = HTMLDialogElement.prototype.show;
   const originalShowModal = HTMLDialogElement.prototype.showModal;
-  const originalClose = HTMLDialogElement.prototype.close;
 
   /**
    * Wraps a dialog method to automatically attach event listeners
@@ -73,28 +72,21 @@ export function apply(): void {
   }
 
   /**
-   * Monkey‑patch {@link HTMLDialogElement.showModal} so that event listeners
-   * are wired up whenever the dialog opens *and* the author declared
-   * `closedby`.
+   * Monkey‑patch {@link HTMLDialogElement.show} and {@link HTMLDialogElement.showModal}
+   * so that event listeners are wired up whenever the dialog opens *and* the
+   * author declared `closedby`.
+   *
+   * Note: We do not patch close() because attachDialog() registers a 'close'
+   * event listener that handles cleanup for all close scenarios, including
+   * <form method="dialog"> submissions which bypass any patched close() method.
    */
   HTMLDialogElement.prototype.show = wrapDialogMethod(originalShow);
   HTMLDialogElement.prototype.showModal = wrapDialogMethod(originalShowModal);
 
   /**
-   * Ensures that listeners are removed before delegating to the native
-   * `close()` implementation.
-   */
-  HTMLDialogElement.prototype.close = function closePatched(
-    returnValue?: string
-  ): void {
-    detachDialog(this);
-    originalClose.call(this, returnValue);
-  };
-
-  /**
    * Defines the JavaScript property counterpart for the `closedby` content
    * attribute. Reads return the normalized {@link ClosedBy} semantic. Writes
-   * update the underlying attribute **and** synchronies listeners in real
+   * update the underlying attribute **and** synchronize listeners in real
    * time when the dialog is currently open.
    */
   Object.defineProperty(HTMLDialogElement.prototype, "closedBy", {
@@ -116,8 +108,6 @@ export function apply(): void {
       if (this.open) {
         if (this.hasAttribute("closedby")) {
           attachDialog(this);
-        } else {
-          detachDialog(this);
         }
       }
     },

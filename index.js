@@ -195,7 +195,6 @@ function apply() {
   }
   const originalShow = HTMLDialogElement.prototype.show;
   const originalShowModal = HTMLDialogElement.prototype.showModal;
-  const originalClose = HTMLDialogElement.prototype.close;
   function wrapDialogMethod(originalMethod) {
     return function() {
       originalMethod.call(this);
@@ -207,10 +206,6 @@ function apply() {
   }
   HTMLDialogElement.prototype.show = wrapDialogMethod(originalShow);
   HTMLDialogElement.prototype.showModal = wrapDialogMethod(originalShowModal);
-  HTMLDialogElement.prototype.close = function closePatched(returnValue) {
-    detachDialog(this);
-    originalClose.call(this, returnValue);
-  };
   Object.defineProperty(HTMLDialogElement.prototype, "closedBy", {
     get() {
       const v = this.getAttribute("closedby");
@@ -228,8 +223,6 @@ function apply() {
       if (this.open) {
         if (this.hasAttribute("closedby")) {
           attachDialog(this);
-        } else {
-          detachDialog(this);
         }
       }
     },
