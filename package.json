@@ -1,7 +1,7 @@
 {
-  "name": "dialog-closedby-polyfill",
-  "version": "1.1.0",
-  "description": "Polyfill for the HTMLDialogElement closedBy attribute",
+  "name": "@fractaledmind/dialog-closedby-polyfill",
+  "version": "1.1.1",
+  "description": "Polyfill for the HTMLDialogElement closedBy attribute (fork with light-dismiss race condition fix)",
   "main": "index.js",
   "types": "index.d.ts",
   "exports": {
@@ -27,6 +27,9 @@
     "web-components"
   ],
   "author": "Takahiro Arai (https://www.tak-dcxi.com)",
+  "contributors": [
+    "Stephen Margheim (https://fractaledmind.github.io)"
+  ],
   "license": "MIT",
   "devDependencies": {
     "@types/node": "^20.0.0",
@@ -35,10 +38,10 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/tak-dcxi/dialog-closedby-polyfill.git"
+    "url": "https://github.com/fractaledmind/dialog-closedby-polyfill.git"
   },
   "bugs": {
-    "url": "https://github.com/tak-dcxi/dialog-closedby-polyfill/issues"
+    "url": "https://github.com/fractaledmind/dialog-closedby-polyfill/issues"
   },
-  "homepage": "https://github.com/tak-dcxi/dialog-closedby-polyfill#readme"
+  "homepage": "https://github.com/fractaledmind/dialog-closedby-polyfill#readme"
 }
