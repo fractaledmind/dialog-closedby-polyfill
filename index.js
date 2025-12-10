@@ -42,8 +42,10 @@ document.addEventListener("keydown", documentEscapeHandler);
 function createLightDismissHandler(dialog) {
   return function handleDocumentClick(event) {
     const state = dialogStates.get(dialog);
-    if (state && event.timeStamp <= state.openedAt) {
-      return;
+    if (state) {
+      if (event.timeStamp <= state.openedAt) return;
+      const target = event.target;
+      if (dialog.contains(target)) return;
     }
     if (!isTopMost(dialog) || getClosedByValue(dialog) !== "any" || !dialog.open) {
       return;

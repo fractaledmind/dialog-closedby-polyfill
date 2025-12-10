@@ -124,9 +124,12 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
   return function handleDocumentClick(event: MouseEvent): void {
     const state = dialogStates.get(dialog);
 
-    // Ignore clicks that occurred before the dialog was opened
-    if (state && event.timeStamp <= state.openedAt) {
-      return;
+    // Ignore clicks from before the dialog was opened or clicks that
+    // originated from inside the dialog (even if coordinates are outside)
+    if (state) {
+      if (event.timeStamp <= state.openedAt) return;
+      const target = event.target as Node;
+      if (dialog.contains(target)) return;
     }
 
     // Only the top-most, open dialog with closedby="any" can be dismissed.
@@ -174,7 +177,7 @@ function createClickHandler(dialog: HTMLDialogElement) {
   return function handleClick(event: MouseEvent): void {
     const state = dialogStates.get(dialog);
 
-    // Ignore clicks that occurred before the dialog was opened
+    // Ignore clicks from before the dialog was opened
     if (state && event.timeStamp <= state.openedAt) {
       return;
     }
