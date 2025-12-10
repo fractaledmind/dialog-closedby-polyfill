@@ -16,7 +16,7 @@ A polyfill for the HTMLDialogElement `closedby` attribute, providing control ove
 ## Installation
 
 ```bash
-npm install dialog-closedby-polyfill
+npm install @fractaledmind/dialog-closedby-polyfill
 ```
 
 ## Usage
@@ -25,10 +25,10 @@ The polyfill is automatically applied when imported:
 
 ```javascript
 // ES Modules (auto-applies if needed)
-import "dialog-closedby-polyfill";
+import "@fractaledmind/dialog-closedby-polyfill";
 
 // CommonJS (auto-applies if needed)
-require("dialog-closedby-polyfill");
+require("@fractaledmind/dialog-closedby-polyfill");
 ```
 
 ### Manual Control
@@ -36,7 +36,7 @@ require("dialog-closedby-polyfill");
 If you need more control over when the polyfill is applied:
 
 ```javascript
-import { apply, isSupported } from "dialog-closedby-polyfill";
+import { apply, isSupported } from "@fractaledmind/dialog-closedby-polyfill";
 
 if (!isSupported()) {
   apply();
@@ -49,7 +49,7 @@ Or include it via CDN:
 <!-- Polyfill applied automatically -->
 <script
   type="module"
-  src="https://cdn.jsdelivr.net/npm/dialog-closedby-polyfill/index.js"
+  src="https://unpkg.com/@fractaledmind/dialog-closedby-polyfill"
 ></script>
 
 <!-- polyfill manually -->
@@ -57,7 +57,7 @@ Or include it via CDN:
   import {
     isSupported,
     apply,
-  } from "https://cdn.jsdelivr.net/npm/dialog-closedby-polyfill/index.js";
+  } from "https://unpkg.com/@fractaledmind/dialog-closedby-polyfill";
   if (!isSupported()) apply();
 </script>
 ```
@@ -200,7 +200,7 @@ This polyfill works in all browsers that support the native `<dialog>` element.
 Check if the browser natively supports the `closedby` attribute.
 
 ```javascript
-import { isSupported } from "dialog-closedby-polyfill";
+import { isSupported } from "@fractaledmind/dialog-closedby-polyfill";
 
 if (isSupported()) {
   console.log("Native closedby support available!");
@@ -212,7 +212,7 @@ if (isSupported()) {
 Check if the polyfill has already been applied.
 
 ```javascript
-import { isPolyfilled } from "dialog-closedby-polyfill";
+import { isPolyfilled } from "@fractaledmind/dialog-closedby-polyfill";
 
 if (isPolyfilled()) {
   console.log("Polyfill has been applied");
@@ -224,7 +224,7 @@ if (isPolyfilled()) {
 Manually apply the polyfill. This is called automatically when importing the main module.
 
 ```javascript
-import { apply } from "dialog-closedby-polyfill";
+import { apply } from "@fractaledmind/dialog-closedby-polyfill";
 
 apply(); // Apply the polyfill
 ```
