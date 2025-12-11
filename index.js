@@ -47,7 +47,7 @@ function createLightDismissHandler(dialog) {
       const target = event.target;
       if (dialog.contains(target)) return;
     }
-    if (!isTopMost(dialog) || getClosedByValue(dialog) !== "any" || !dialog.open) {
+    if (!isTopMost(dialog) && dialog.matches(":modal") || getClosedByValue(dialog) !== "any" || !dialog.open) {
       return;
     }
     const rect = dialog.getBoundingClientRect();
