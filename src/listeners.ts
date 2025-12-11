@@ -134,7 +134,7 @@ function createLightDismissHandler(dialog: HTMLDialogElement) {
 
     // Only the top-most, open dialog with closedby="any" can be dismissed.
     if (
-      !isTopMost(dialog) ||
+      (!isTopMost(dialog) && dialog.matches(':modal')) ||
       getClosedByValue(dialog) !== "any" ||
       !dialog.open
     ) {
